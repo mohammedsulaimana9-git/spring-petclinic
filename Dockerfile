@@ -12,7 +12,7 @@ RUN useradd -m -d ${HOMEDIR} -s /bin/bash ${USER}
 USER ${USER}
 
 
-WORKDIR /petclinic
+WORKDIR ${HOMEDIR}
 
 COPY . .
 
