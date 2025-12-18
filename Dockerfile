@@ -1,27 +1,31 @@
-FROM maven:3.8.3-openjdk-17
+FROM maven:3-amazon-corretto-17 AS builder
+#AS Builder means staging as builder first
 
-LABEL author="sulaiman" project="spring-petclinic"
+COPY . /spc
+#copying from current directory(i.e source) to destination /spc file in container 
 
-ARG USER="spring"
-ARG HOMEDIR="/spring"
+RUN cd /spc && mvn package
+#run cd command and run mvn package
 
-RUN useradd -m -d ${HOMEDIR} -s /bin/bash ${USER}
-# -m Create the user’s home directory
-# -d Sets the home directory path for the user
+FROM amazoncorretto:17-alpine-3.18-jdk
+#alpine is an operating system amoung linux distributions beacuse of its thin OS
 
-USER ${USER}
+LABEL author="sulaiman" project="springpetclinic" environment="test"
 
+ARG USERNAME="spring"
+ARG HOMEDIR="/springpetclinic"
+RUN adduser -h ${HOMEDIR} -s /bin/bash -D ${USERNAME}
+#adding user with -h home directory then defining the shell bash and defining the username 
+
+COPY --from=builder --chown=${USERNAME}:${USERNAME} /spc/target/spring-petclinic-*.jar ${HOMEDIR}
+
+USER ${USERNAME}
 
 WORKDIR ${HOMEDIR}
 
-COPY . .
-
-RUN mvn package
-
 EXPOSE 8080
 
-CMD ["sh","-c","java -jar target/*.jar"]
-
+CMD ["sh","-c","java -jar springpetclinic-*.jar"]
 
 
 
